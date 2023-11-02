@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const MyApp());
@@ -58,6 +59,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  List<dynamic> _images = [];
 
   void _incrementCounter() {
     setState(() {
@@ -67,17 +69,39 @@ class _MyHomePageState extends State<MyHomePage> {
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
       _counter++;
+      //Loop counter
+      if (_counter == _images.length) {
+        _counter = 0;
+      }
     });
   }
 
   void _decrementCounter() {
     setState(() {
       _counter--;
+      if (_counter < 0) {
+        _counter = _images.length - 1;
+      }
+    });
+  }
+
+  //Will get the paths for all images mentioned in assets..
+  // https://stackoverflow.com/questions/56544200/flutter-how-to-get-a-list-of-names-of-all-images-in-assets-directory
+  Future _initImages() async {
+    final assetManifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+    // This returns a List<String> with all your images
+    final imageAssetsList = assetManifest
+        .listAssets()
+        .where((string) => string.startsWith("images/"))
+        .toList();
+    setState(() {
+      _images = imageAssetsList;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    _initImages();
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -113,9 +137,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'Behold the counter:',
-            ),
+            Image.asset(_images[_counter]),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
@@ -127,13 +149,14 @@ class _MyHomePageState extends State<MyHomePage> {
         IconButton(
           onPressed: _decrementCounter,
           tooltip: 'Decrement',
-          icon: const Icon(Icons.remove),
+          icon: const Icon(Icons.arrow_left_outlined),
         ),
         IconButton(
             onPressed: _incrementCounter,
             tooltip: 'Increment',
-            icon: const Icon(Icons.add)),
+            icon: const Icon(Icons.arrow_right_outlined)),
       ],
+      persistentFooterAlignment: AlignmentDirectional.bottomCenter,
     );
   }
 }
